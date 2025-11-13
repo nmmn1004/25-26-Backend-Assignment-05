@@ -67,4 +67,3 @@ public class PlayerService {
         playerRepository.delete(playerFinder.findByIdOrThrow(Long.parseLong(principal.getName())));
     }
 }
-

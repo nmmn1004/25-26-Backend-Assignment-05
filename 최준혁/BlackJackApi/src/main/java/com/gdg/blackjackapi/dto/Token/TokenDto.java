@@ -1,10 +1,13 @@
 package com.gdg.blackjackapi.dto.Token;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 
+@Data
 @Builder
-@Getter
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class TokenDto {
     private String accessToken;
 }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -18,5 +19,10 @@ public class PlayerFinder {
     public Player findByIdOrThrow(Long playerId) {
         return playerRepository.findById(playerId)
                 .orElseThrow(() -> new PlayerNotFoundException(playerId));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Player> findByEmail(String playerEmail) {
+        return playerRepository.findByEmail(playerEmail);
     }
 }

@@ -17,5 +17,6 @@ public class AuthController {
     @GetMapping("/callback/google")
     public TokenDto googleCallback(@RequestParam("code") String code) {
         String googleAccessToken = authService.getGoogleAccessToken(code);
+        return authService.loginOrSignUp(googleAccessToken);
     }
 }

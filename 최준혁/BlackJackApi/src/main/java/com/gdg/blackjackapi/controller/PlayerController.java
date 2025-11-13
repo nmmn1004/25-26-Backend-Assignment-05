@@ -27,11 +27,6 @@ import java.util.List;
 public class PlayerController {
     private final PlayerService playerService;
 
-    @PostMapping("signup")
-    public ResponseEntity<TokenDto> signUp(@Valid @RequestBody PlayerSignUpDto playerSignUpDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(playerService.signUp(playerSignUpDto));
-    }
-
     @GetMapping
     public ResponseEntity<PlayerInfoResponseDto> getPlayer(Principal principal) {
         return ResponseEntity.status(HttpStatus.OK).body(playerService.findPlayerByPrincipal(principal));

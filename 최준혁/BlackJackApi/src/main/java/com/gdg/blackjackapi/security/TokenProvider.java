@@ -1,6 +1,7 @@
 package com.gdg.blackjackapi.security;
 
 import com.gdg.blackjackapi.domain.Player.Player;
+import com.gdg.blackjackapi.dto.Token.TokenDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -37,16 +38,23 @@ public class TokenProvider {
         this.accessTokenValidityTime = accessTokenValidityTime;
     }
 
-    public String createAccessToken(Player player) {
+    public TokenDto createAccessToken(Player player) {
         long nowTime = (new Date().getTime());
+
         Date accessTokenExpiredTime = new Date(nowTime + accessTokenValidityTime);
 
-        return Jwts.builder()
+
+
+        String accessToken = Jwts.builder()
                 .subject(player.getId().toString())
                 .claim(ROLE_CLAIM, player.getRole().name())
                 .expiration(accessTokenExpiredTime)
                 .signWith(key)
                 .compact();
+
+        return TokenDto.builder()
+                .accessToken(accessToken)
+                .build();
     }
 
     public Authentication getAuthentication(String accessToken) {

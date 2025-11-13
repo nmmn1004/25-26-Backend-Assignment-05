@@ -19,19 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PlayerService {
     private final PlayerRepository playerRepository;
-    private final PlayerCreator playerCreator;
     private final PlayerFinder playerFinder;
-    private final TokenProvider tokenProvider;
-
-    public TokenDto signUp(PlayerSignUpDto playerSignUpDto){
-        Player player = playerCreator.create(playerSignUpDto);
-
-        String accessToken = tokenProvider.createAccessToken(player);
-
-        return TokenDto.builder()
-                .accessToken(accessToken)
-                .build();
-    }
 
     @Transactional(readOnly = true)
     public PlayerInfoResponseDto findPlayerByPrincipal(Principal Principal) {

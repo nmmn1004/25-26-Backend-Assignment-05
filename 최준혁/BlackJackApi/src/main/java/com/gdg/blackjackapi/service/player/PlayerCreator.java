@@ -4,6 +4,7 @@ import com.gdg.blackjackapi.domain.Player.Player;
 import com.gdg.blackjackapi.domain.Player.Role;
 import com.gdg.blackjackapi.dto.Player.PlayerSaveRequestDto;
 import com.gdg.blackjackapi.dto.Player.PlayerSignUpDto;
+import com.gdg.blackjackapi.dto.User.UserInfoDto;
 import com.gdg.blackjackapi.repository.PlayerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -15,12 +16,13 @@ import java.time.LocalDate;
 public class PlayerCreator {
     private final PlayerRepository playerRepository;
 
-    public Player create(PlayerSignUpDto playerSignUpDto) {
+    public Player create(UserInfoDto userInfoDto) {
         Player player = Player.builder()
-                .name(playerSignUpDto.getName())
-                .email(playerSignUpDto.getEmail())
+                .name(userInfoDto.getName())
+                .email(userInfoDto.getEmail())
                 .record(0L)
                 .role(Role.ROLE_USER)
+                .oauthProvider("GOOGLE")
                 .date(LocalDate.now())
                 .build();
 

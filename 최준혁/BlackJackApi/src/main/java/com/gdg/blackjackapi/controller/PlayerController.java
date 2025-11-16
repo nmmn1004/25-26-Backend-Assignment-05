@@ -29,19 +29,19 @@ public class PlayerController {
     private final PlayerService playerService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<PlayerInfoResponseDto> getPlayer(Principal principal) {
         return ResponseEntity.status(HttpStatus.OK).body(playerService.findPlayerByPrincipal(principal));
     }
 
     @PatchMapping
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<PlayerInfoResponseDto> updatePlayer(Principal principal, @Valid @RequestBody PlayerSaveRequestDto playerRequestDto) {
         return ResponseEntity.status(HttpStatus.OK).body(playerService.updatePlayer(principal, playerRequestDto));
     }
 
     @DeleteMapping
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<Void> deletePlayer(Principal principal) {
         playerService.deletePlayer(principal);
         return ResponseEntity.noContent().build();

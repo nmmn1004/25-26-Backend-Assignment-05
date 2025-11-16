@@ -26,31 +26,31 @@ public class GameController {
     private final GameService gameService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<GameInfoResponseDto> saveGame(Principal principal) {
         return ResponseEntity.status(HttpStatus.CREATED).body(gameService.saveGame(principal));
     }
 
     @GetMapping("/{gameId}")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<GameInfoResponseDto> getGame(Principal principal, @PathVariable Long gameId) {
         return ResponseEntity.status(HttpStatus.OK).body(gameService.getGame(principal, gameId));
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<List<GameInfoResponseDto>> getAllGame(Principal principal) {
         return ResponseEntity.status(HttpStatus.OK).body(gameService.getAllGame(principal));
     }
 
     @GetMapping("/result/{gameId}")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<GameInfoResponseDto> getResult(Principal principal, @PathVariable Long gameId) {
         return ResponseEntity.status(HttpStatus.OK).body(gameService.getGameResult(principal, gameId));
     }
 
     @DeleteMapping("/{gameId}")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<GameInfoResponseDto> deleteGame(Principal principal, @PathVariable Long gameId) {
         gameService.deleteGame(principal, gameId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

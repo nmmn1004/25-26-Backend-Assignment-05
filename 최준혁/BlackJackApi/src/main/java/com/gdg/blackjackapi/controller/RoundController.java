@@ -6,6 +6,7 @@ import com.gdg.blackjackapi.service.RoundService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -25,6 +26,7 @@ public class RoundController {
     private final RoundService roundService;
 
     @PostMapping("/{gameId}")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<RoundInfoResponseDto> saveRound(Principal principal,
                                                           @PathVariable Long gameId,
                                                           @RequestBody RoundSaveRequestDto roundSaveRequestDto) {
@@ -33,6 +35,7 @@ public class RoundController {
     }
 
     @GetMapping("/recent/{gameId}")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<RoundInfoResponseDto> getRound(Principal principal,
                                                          @PathVariable Long gameId) {
         return ResponseEntity.status(HttpStatus.OK)
@@ -40,6 +43,7 @@ public class RoundController {
     }
 
     @GetMapping("/all/{gameId}")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<List<RoundInfoResponseDto>> getAllRounds(Principal principal,
                                                                    @PathVariable Long gameId) {
         return ResponseEntity.status(HttpStatus.OK)
@@ -47,6 +51,7 @@ public class RoundController {
     }
 
     @PatchMapping("/{gameId}")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<RoundInfoResponseDto> updateLatestRound(Principal principal,
                                                                   @PathVariable Long gameId,
                                                                   @RequestBody RoundSaveRequestDto roundSaveRequestDto) {
@@ -55,6 +60,7 @@ public class RoundController {
     }
 
     @PatchMapping("/result/{gameId}")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<RoundInfoResponseDto> updateRoundResult(Principal principal,
                                                                   @PathVariable Long gameId) {
         return ResponseEntity.status(HttpStatus.OK)
@@ -62,6 +68,7 @@ public class RoundController {
     }
 
     @DeleteMapping("/{roundId}")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<Void> deleteRound(Principal principal,
                                             @PathVariable Long roundId) {
         roundService.deleteRound(principal, roundId);

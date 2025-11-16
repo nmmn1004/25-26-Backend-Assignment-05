@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -23,34 +24,47 @@ import java.util.List;
 public class RoundController {
     private final RoundService roundService;
 
-    @PostMapping
-    public ResponseEntity<RoundInfoResponseDto> saveRound(@RequestBody RoundSaveRequestDto roundSaveRequestDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(roundService.saveRound(roundSaveRequestDto));
+    @PostMapping("/{gameId}")
+    public ResponseEntity<RoundInfoResponseDto> saveRound(Principal principal,
+                                                          @PathVariable Long gameId,
+                                                          @RequestBody RoundSaveRequestDto roundSaveRequestDto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(roundService.saveRound(principal, gameId, roundSaveRequestDto));
     }
 
     @GetMapping("/recent/{gameId}")
-    public ResponseEntity<RoundInfoResponseDto> getRound(@PathVariable Long gameId) {
-        return ResponseEntity.status(HttpStatus.OK).body(roundService.getLatestRoundByGame(gameId));
+    public ResponseEntity<RoundInfoResponseDto> getRound(Principal principal,
+                                                         @PathVariable Long gameId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(roundService.getLatestRoundByGame(principal, gameId));
     }
 
     @GetMapping("/all/{gameId}")
-    public ResponseEntity<List<RoundInfoResponseDto>> getAllGame(@PathVariable Long gameId) {
-        return ResponseEntity.status(HttpStatus.OK).body(roundService.getAllRoundsByGame(gameId));
+    public ResponseEntity<List<RoundInfoResponseDto>> getAllRounds(Principal principal,
+                                                                   @PathVariable Long gameId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(roundService.getAllRoundsByGame(principal, gameId));
     }
 
     @PatchMapping("/{gameId}")
-    public ResponseEntity<RoundInfoResponseDto> updateLatestRound(@PathVariable Long gameId, @RequestBody RoundSaveRequestDto roundSaveRequestDto) {
-        return ResponseEntity.status(HttpStatus.OK).body(roundService.updateLatestRound(gameId, roundSaveRequestDto));
+    public ResponseEntity<RoundInfoResponseDto> updateLatestRound(Principal principal,
+                                                                  @PathVariable Long gameId,
+                                                                  @RequestBody RoundSaveRequestDto roundSaveRequestDto) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(roundService.updateLatestRound(principal, gameId, roundSaveRequestDto));
     }
 
     @PatchMapping("/result/{gameId}")
-    public ResponseEntity<RoundInfoResponseDto> updateRoundResult(@PathVariable Long gameId) {
-        return ResponseEntity.status(HttpStatus.OK).body(roundService.updateRoundResult(gameId));
+    public ResponseEntity<RoundInfoResponseDto> updateRoundResult(Principal principal,
+                                                                  @PathVariable Long gameId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(roundService.updateRoundResult(principal, gameId));
     }
 
     @DeleteMapping("/{roundId}")
-    public ResponseEntity<RoundInfoResponseDto> deleteRound(@PathVariable Long roundId) {
-        roundService.deleteRound(roundId);
+    public ResponseEntity<Void> deleteRound(Principal principal,
+                                            @PathVariable Long roundId) {
+        roundService.deleteRound(principal, roundId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,28 +26,33 @@ public class GameController {
     private final GameService gameService;
 
     @PostMapping
-    public ResponseEntity<GameInfoResponseDto> saveGame(Principal principal, @Valid @RequestBody GameSaveRequestDto gameRequestDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(gameService.saveGame(principal, gameRequestDto));
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<GameInfoResponseDto> saveGame(Principal principal) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(gameService.saveGame(principal));
     }
 
     @GetMapping("/{gameId}")
-    public ResponseEntity<GameInfoResponseDto> getGame(@PathVariable Long gameId) {
-        return ResponseEntity.status(HttpStatus.OK).body(gameService.getGame(gameId));
-    }
-
-    @DeleteMapping("/{gameId}")
-    public ResponseEntity<GameInfoResponseDto> deleteGame(@PathVariable Long gameId) {
-        gameService.deleteGame(gameId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<GameInfoResponseDto> getGame(Principal principal, @PathVariable Long gameId) {
+        return ResponseEntity.status(HttpStatus.OK).body(gameService.getGame(principal, gameId));
     }
 
     @GetMapping
-    public ResponseEntity<List<GameInfoResponseDto>> getAllGame() {
-        return ResponseEntity.status(HttpStatus.OK).body(gameService.getAllGame());
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<List<GameInfoResponseDto>> getAllGame(Principal principal) {
+        return ResponseEntity.status(HttpStatus.OK).body(gameService.getAllGame(principal));
     }
 
     @GetMapping("/result/{gameId}")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<GameInfoResponseDto> getResult(Principal principal, @PathVariable Long gameId) {
         return ResponseEntity.status(HttpStatus.OK).body(gameService.getGameResult(principal, gameId));
+    }
+
+    @DeleteMapping("/{gameId}")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<GameInfoResponseDto> deleteGame(Principal principal, @PathVariable Long gameId) {
+        gameService.deleteGame(principal, gameId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

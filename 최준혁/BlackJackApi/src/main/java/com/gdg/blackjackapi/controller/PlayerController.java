@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -28,16 +29,19 @@ public class PlayerController {
     private final PlayerService playerService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<PlayerInfoResponseDto> getPlayer(Principal principal) {
         return ResponseEntity.status(HttpStatus.OK).body(playerService.findPlayerByPrincipal(principal));
     }
 
     @PatchMapping
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<PlayerInfoResponseDto> updatePlayer(Principal principal, @Valid @RequestBody PlayerSaveRequestDto playerRequestDto) {
         return ResponseEntity.status(HttpStatus.OK).body(playerService.updatePlayer(principal, playerRequestDto));
     }
 
     @DeleteMapping
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<Void> deletePlayer(Principal principal) {
         playerService.deletePlayer(principal);
         return ResponseEntity.noContent().build();

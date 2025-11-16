@@ -25,23 +25,33 @@ public class GameService {
     private final PlayerService playerService;
 
     @Transactional
-    public GameInfoResponseDto saveGame(Principal principal, GameSaveRequestDto gameSaveRequestDto) {
+    public GameInfoResponseDto saveGame(Principal principal) {
         Player player = playerFinder.findByIdOrThrow(Long.parseLong(principal.getName()));
 
-        return GameInfoResponseDto.from(gameCreator.create(player, gameSaveRequestDto));
+        return GameInfoResponseDto.from(gameCreator.create(player));
     }
 
     @Transactional(readOnly = true)
-    public GameInfoResponseDto getGame(Long gameId) {
+    public GameInfoResponseDto getGame(Principal principal, Long gameId) {
+        Long playerId = Long.parseLong(principal.getName());
+        playerFinder.findByIdOrThrow(playerId);
+
         Game game = gameFinder.findByIdOrThrow(gameId);
+
+        if (!game.getPlayer().getId().equals(playerId)) {
+            throw new AccessDeniedException("접근 권한이 없습니다.");
+        }
 
         return GameInfoResponseDto.from(game);
     }
 
     @Transactional(readOnly = true)
-    public List<GameInfoResponseDto> getAllGame() {
-        return gameFinder.findAll()
-                .stream()
+    public List<GameInfoResponseDto> getAllGame(Principal principal) {
+        Player player = playerFinder.findByIdOrThrow(Long.parseLong(principal.getName()));
+
+        List<Game> playerGames = gameRepository.findByPlayerId(player.getId());
+
+        return playerGames.stream()
                 .map(GameInfoResponseDto::from)
                 .toList();
     }
@@ -60,8 +70,16 @@ public class GameService {
     }
 
     @Transactional
-    public void deleteGame(Long gameId) {
-        gameRepository.deleteById(gameId);
-    }
+    public void deleteGame(Principal principal, Long gameId) {
+        Long playerId = Long.parseLong(principal.getName());
+        playerFinder.findByIdOrThrow(playerId);
 
+        Game game = gameFinder.findByIdOrThrow(gameId);
+
+        if (!game.getPlayer().getId().equals(playerId)) {
+            throw new AccessDeniedException("접근 권한이 없습니다.");
+        }
+
+        gameRepository.delete(game);
+    }
 }

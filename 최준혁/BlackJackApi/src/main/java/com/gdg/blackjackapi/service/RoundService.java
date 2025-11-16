@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,8 +26,9 @@ public class RoundService {
     private final CardUtil cardUtil = new CardUtil();
 
     @Transactional
-    public RoundInfoResponseDto saveRound(RoundSaveRequestDto roundSaveRequestDto) {
-        Game game = gameFinder.findByIdOrThrow(roundSaveRequestDto.getGameId());
+    public RoundInfoResponseDto saveRound(Principal principal, Long gameId, RoundSaveRequestDto roundSaveRequestDto) {
+        Game game = gameFinder.findByIdOrThrow(gameId);
+        checkPlayerAccess(principal, game);
 
         if (roundSaveRequestDto.getBettingChips() > game.getChips()) {
             throw new IllegalArgumentException("베팅 칩이 보유 칩보다 많습니다.");
@@ -34,34 +36,32 @@ public class RoundService {
 
         Round round = new Round(roundSaveRequestDto.getBettingChips(), game);
 
-        Card playerCard = new Card(CardOwner.PLAYER, round);
-        Card opponentCard = new Card(CardOwner.OPPONENT, round);
-
-        round.getCards().add(playerCard);
-        round.getCards().add(opponentCard);
+        round.getCards().add(new Card(CardOwner.PLAYER, round));
+        round.getCards().add(new Card(CardOwner.OPPONENT, round));
 
         game.getRounds().add(round);
         game.update(game.getChips() - roundSaveRequestDto.getBettingChips(), game.getPlayer());
 
         roundRepository.save(round);
-
         return RoundInfoResponseDto.from(round);
     }
 
     @Transactional(readOnly = true)
-    public RoundInfoResponseDto getLatestRoundByGame(Long gameId) {
+    public RoundInfoResponseDto getLatestRoundByGame(Principal principal, Long gameId) {
         Game game = gameFinder.findByIdOrThrow(gameId);
+        checkPlayerAccess(principal, game);
 
         Round latest = game.getRounds().stream()
                 .reduce((first, second) -> second)
-                .orElseThrow(() -> new IllegalArgumentException("아직 생성된 라운드가 없습니다. (gameId=" + gameId + ")"));
+                .orElseThrow(() -> new IllegalArgumentException("아직 생성된 라운드가 없습니다."));
 
         return RoundInfoResponseDto.from(latest);
     }
 
     @Transactional(readOnly = true)
-    public List<RoundInfoResponseDto> getAllRoundsByGame(Long gameId) {
+    public List<RoundInfoResponseDto> getAllRoundsByGame(Principal principal, Long gameId) {
         Game game = gameFinder.findByIdOrThrow(gameId);
+        checkPlayerAccess(principal, game);
 
         return game.getRounds().stream()
                 .map(RoundInfoResponseDto::from)
@@ -69,44 +69,41 @@ public class RoundService {
     }
 
     @Transactional
-    public RoundInfoResponseDto updateLatestRound(Long gameId, RoundSaveRequestDto roundSaveRequestDto) {
+    public RoundInfoResponseDto updateLatestRound(Principal principal, Long gameId, RoundSaveRequestDto roundSaveRequestDto) {
         Game game = gameFinder.findByIdOrThrow(gameId);
+        checkPlayerAccess(principal, game);
 
         Round latest = game.getRounds().stream()
                 .reduce((first, second) -> second)
-                .orElseThrow(() -> new IllegalArgumentException("수정할 라운드가 존재하지 않습니다. (gameId=" + gameId + ")"));
+                .orElseThrow(() -> new IllegalArgumentException("수정할 라운드가 존재하지 않습니다."));
 
         if (roundSaveRequestDto.getBettingChips() != null) {
             latest.updateBettingChips(roundSaveRequestDto.getBettingChips());
         }
 
         game.update(game.getChips() - latest.getBettingChips(), game.getPlayer());
-
         return RoundInfoResponseDto.from(latest);
     }
 
     @Transactional
-    public RoundInfoResponseDto updateRoundResult(Long gameId) {
+    public RoundInfoResponseDto updateRoundResult(Principal principal, Long gameId) {
         Game game = gameFinder.findByIdOrThrow(gameId);
+        checkPlayerAccess(principal, game);
 
         Round latest = game.getRounds().stream()
                 .reduce((first, second) -> second)
-                .orElseThrow(() -> new IllegalArgumentException("수정할 라운드가 존재하지 않습니다. (gameId=" + gameId + ")"));
+                .orElseThrow(() -> new IllegalArgumentException("수정할 라운드가 존재하지 않습니다."));
 
         List<Card> cards = latest.getCards();
-
-        List<Integer> playerCards = cards.stream()
+        int playerScore = cardUtil.calculateHandCard(cards.stream()
                 .filter(c -> c.getOwner() == CardOwner.PLAYER)
                 .flatMap(c -> List.of(c.getCard1(), c.getCard2()).stream())
-                .collect(Collectors.toList());
+                .toList());
 
-        List<Integer> opponentCards = cards.stream()
+        int opponentScore = cardUtil.calculateHandCard(cards.stream()
                 .filter(c -> c.getOwner() == CardOwner.OPPONENT)
                 .flatMap(c -> List.of(c.getCard1(), c.getCard2()).stream())
-                .collect(Collectors.toList());
-
-        int playerScore = cardUtil.calculateHandCard(playerCards);
-        int opponentScore = cardUtil.calculateHandCard(opponentCards);
+                .toList());
 
         long modifiedChips = game.getChips();
         RoundResult roundResult;
@@ -134,7 +131,18 @@ public class RoundService {
     }
 
     @Transactional
-    public void deleteRound(Long roundId) {
-        roundRepository.deleteById(roundId);
+    public void deleteRound(Principal principal, Long roundId) {
+        Round round = roundRepository.findById(roundId)
+                .orElseThrow(() -> new IllegalArgumentException("라운드를 찾을 수 없습니다. id=" + roundId));
+        checkPlayerAccess(principal, round.getGame());
+
+        roundRepository.delete(round);
+    }
+
+    private void checkPlayerAccess(Principal principal, Game game) {
+        Long playerId = Long.parseLong(principal.getName());
+        if (!game.getPlayer().getId().equals(playerId)) {
+            throw new SecurityException("접근 권한이 없습니다.");
+        }
     }
 }

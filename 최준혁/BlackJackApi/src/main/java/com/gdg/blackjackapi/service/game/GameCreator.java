@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class GameCreator {
     private final GameRepository gameRepository;
 
-    public Game create(Player player, GameSaveRequestDto gameSaveRequestDto) {
+    public Game create(Player player) {
         Game game = Game.builder()
                 .player(player)
                 .build();

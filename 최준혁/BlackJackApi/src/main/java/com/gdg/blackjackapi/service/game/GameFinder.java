@@ -21,7 +21,7 @@ public class GameFinder {
     }
 
     @Transactional(readOnly = true)
-    public List<Game> findAll() {
-        return gameRepository.findAll();
+    public List<Game> findAll(Long playerId) {
+        return gameRepository.findByPlayerId(playerId);
     }
 }

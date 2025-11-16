@@ -6,6 +6,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -25,7 +26,7 @@ import java.util.Date;
 
 @Component
 public class TokenProvider {
-    private static final String ROLE_CLAIM = "Role";
+    private static final String ROLE_CLAIM = "auth";
     private static final String BEARER = "Bearer";
     private static final String AUTHORIZATION = "Authorization";
 
@@ -43,13 +44,11 @@ public class TokenProvider {
 
         Date accessTokenExpiredTime = new Date(nowTime + accessTokenValidityTime);
 
-
-
         String accessToken = Jwts.builder()
                 .subject(player.getId().toString())
                 .claim(ROLE_CLAIM, player.getRole().name())
                 .expiration(accessTokenExpiredTime)
-                .signWith(key)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
         return TokenDto.builder()
@@ -64,8 +63,7 @@ public class TokenProvider {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
         }
 
-        Collection<? extends GrantedAuthority> authorities =
-                Arrays.stream(claims.get(ROLE_CLAIM).toString().split(","))
+        Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get(ROLE_CLAIM).toString().split(","))
                         .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                         .toList();
 
@@ -85,8 +83,7 @@ public class TokenProvider {
     }
 
     public boolean validateToken(String token) {
-        try {
-            Jwts.parser()
+        try { Jwts.parser()
                     .verifyWith(key)
                     .build()
                     .parseSignedClaims(token);
@@ -98,8 +95,7 @@ public class TokenProvider {
     }
 
     private Claims parseClaims(String token) {
-        try {
-            return Jwts.parser()
+        try { return Jwts.parser()
                     .verifyWith(key)
                     .build()
                     .parseSignedClaims(token)

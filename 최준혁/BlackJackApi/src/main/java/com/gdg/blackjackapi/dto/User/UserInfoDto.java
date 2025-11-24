@@ -1,23 +1,21 @@
 package com.gdg.blackjackapi.dto.User;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UserInfoDto {
     private String email;
 
     private String name;
 
-    @SerializedName("verified_email")
     private Boolean verifiedEmail;
 
-    @SerializedName("given_name")
     private String givenName;
 
-    @SerializedName("family_name")
     private String familyName;
 
     @SerializedName("picture")

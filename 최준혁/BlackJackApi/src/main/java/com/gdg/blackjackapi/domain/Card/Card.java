@@ -1,6 +1,7 @@
 package com.gdg.blackjackapi.domain.Card;
 
 import com.gdg.blackjackapi.domain.Round.Round;
+import com.gdg.blackjackapi.global.util.CardUtil;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -36,8 +37,7 @@ public class Card {
         this.owner = owner;
         this.round = round;
 
-        CardUtil cardUtil = new CardUtil();
-        this.card1 = cardUtil.generateRandomCards();
-        this.card2 = cardUtil.generateRandomCards();
+        this.card1 = CardUtil.generateRandomCards();
+        this.card2 = CardUtil.generateRandomCards();
     }
 }

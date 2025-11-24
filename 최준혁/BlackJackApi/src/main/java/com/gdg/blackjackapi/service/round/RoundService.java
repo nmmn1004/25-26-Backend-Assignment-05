@@ -1,8 +1,8 @@
-package com.gdg.blackjackapi.service;
+package com.gdg.blackjackapi.service.round;
 
 import com.gdg.blackjackapi.domain.Card.Card;
 import com.gdg.blackjackapi.domain.Card.CardOwner;
-import com.gdg.blackjackapi.domain.Card.CardUtil;
+import com.gdg.blackjackapi.global.util.CardUtil;
 import com.gdg.blackjackapi.domain.Game;
 import com.gdg.blackjackapi.domain.Round.Round;
 import com.gdg.blackjackapi.domain.Round.RoundResult;
@@ -16,14 +16,13 @@ import org.springframework.stereotype.Service;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class RoundService {
     private final RoundRepository roundRepository;
     private final GameFinder gameFinder;
-    private final CardUtil cardUtil = new CardUtil();
+    private final RoundFinder roundFinder;
 
     @Transactional
     public RoundInfoResponseDto saveRound(Principal principal, Long gameId, RoundSaveRequestDto roundSaveRequestDto) {
@@ -51,9 +50,7 @@ public class RoundService {
         Game game = gameFinder.findByIdOrThrow(gameId);
         checkPlayerAccess(principal, game);
 
-        Round latest = game.getRounds().stream()
-                .reduce((first, second) -> second)
-                .orElseThrow(() -> new IllegalArgumentException("아직 생성된 라운드가 없습니다."));
+        Round latest = game.getRounds().get(game.getRounds().size() - 1);
 
         return RoundInfoResponseDto.from(latest);
     }
@@ -73,9 +70,7 @@ public class RoundService {
         Game game = gameFinder.findByIdOrThrow(gameId);
         checkPlayerAccess(principal, game);
 
-        Round latest = game.getRounds().stream()
-                .reduce((first, second) -> second)
-                .orElseThrow(() -> new IllegalArgumentException("수정할 라운드가 존재하지 않습니다."));
+        Round latest = game.getRounds().get(game.getRounds().size() - 1);
 
         if (roundSaveRequestDto.getBettingChips() != null) {
             latest.updateBettingChips(roundSaveRequestDto.getBettingChips());
@@ -90,17 +85,15 @@ public class RoundService {
         Game game = gameFinder.findByIdOrThrow(gameId);
         checkPlayerAccess(principal, game);
 
-        Round latest = game.getRounds().stream()
-                .reduce((first, second) -> second)
-                .orElseThrow(() -> new IllegalArgumentException("수정할 라운드가 존재하지 않습니다."));
+        Round latest = game.getRounds().get(game.getRounds().size() - 1);
 
         List<Card> cards = latest.getCards();
-        int playerScore = cardUtil.calculateHandCard(cards.stream()
+        int playerScore = CardUtil.calculateHandCard(cards.stream()
                 .filter(c -> c.getOwner() == CardOwner.PLAYER)
                 .flatMap(c -> List.of(c.getCard1(), c.getCard2()).stream())
                 .toList());
 
-        int opponentScore = cardUtil.calculateHandCard(cards.stream()
+        int opponentScore = CardUtil.calculateHandCard(cards.stream()
                 .filter(c -> c.getOwner() == CardOwner.OPPONENT)
                 .flatMap(c -> List.of(c.getCard1(), c.getCard2()).stream())
                 .toList());
@@ -116,12 +109,12 @@ public class RoundService {
             roundResult = RoundResult.WIN;
         } else if (playerScore == opponentScore) {
             roundResult = RoundResult.DRAW;
-        } else if (playerScore == 21 || opponentScore > playerScore) {
-            modifiedChips -= latest.getBettingChips();
-            roundResult = RoundResult.LOSE;
-        } else {
+        } else if (playerScore > opponentScore) {
             modifiedChips += latest.getBettingChips();
             roundResult = RoundResult.WIN;
+        } else { // (playerScore < opponentScore)
+            modifiedChips -= latest.getBettingChips();
+            roundResult = RoundResult.LOSE;
         }
 
         latest.updateResult(roundResult);

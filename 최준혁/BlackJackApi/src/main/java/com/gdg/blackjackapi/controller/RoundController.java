@@ -2,7 +2,7 @@ package com.gdg.blackjackapi.controller;
 
 import com.gdg.blackjackapi.dto.Round.RoundInfoResponseDto;
 import com.gdg.blackjackapi.dto.Round.RoundSaveRequestDto;
-import com.gdg.blackjackapi.service.RoundService;
+import com.gdg.blackjackapi.service.round.RoundService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -23,9 +23,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
-import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
